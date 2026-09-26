@@ -7,7 +7,9 @@ use bevy_ecs::change_detection::Tick;
 use bevy_ecs::component::{ComponentId, Components, Immutable, StorageType};
 use bevy_ecs::lifecycle::{ComponentHook, HookContext};
 use bevy_ecs::prelude::*;
-use bevy_ecs::query::{FilteredAccess, IterQueryData, QueryData, ReadOnlyQueryData, WorldQuery};
+use bevy_ecs::query::{
+    FilteredAccess, FilteredAccessSet, IterQueryData, QueryData, ReadOnlyQueryData, WorldQuery,
+};
 use bevy_ecs::storage::{Table, TableRow};
 use bevy_ecs::world::{unsafe_world_cell::UnsafeWorldCell, DeferredWorld};
 use bevy_platform::collections::HashMap;
@@ -351,6 +353,15 @@ unsafe impl<T: QueryData> WorldQuery for Expect<T> {
         access.extend_access(&intermediate);
     }
 
+    fn init_nested_access(
+        state: &T::State,
+        system_name: Option<&str>,
+        component_access_set: &mut FilteredAccessSet,
+        world: UnsafeWorldCell,
+    ) {
+        T::init_nested_access(state, system_name, component_access_set, world)
+    }
+
     fn get_state(components: &Components) -> Option<Self::State> {
         T::get_state(components)
     }
@@ -364,6 +375,10 @@ unsafe impl<T: QueryData> WorldQuery for Expect<T> {
         _set_contains_id: &impl Fn(ComponentId) -> bool,
     ) -> bool {
         true
+    }
+
+    fn update_archetypes(state: &mut T::State, world: UnsafeWorldCell) {
+        T::update_archetypes(state, world)
     }
 }
 
